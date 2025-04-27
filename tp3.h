@@ -22,7 +22,7 @@ t_mot *fusionner(t_mot *listeA, t_mot *listeB);
 t_mot *importerFichier(t_mot *liste);
 
 // EN PLUS //////////////////////
-t_mot* ajouter_tete (t_mot *liste, t_mot *val);
+t_mot* ajouterTete (t_mot *liste, t_mot *val);
 
 char convMaj(char *mot);
 

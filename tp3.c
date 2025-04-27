@@ -134,13 +134,13 @@ t_mot *fusionner(t_mot *listeA, t_mot *listeB){
     }
     int cmp = strcmp(listeA->mot, listeB->mot);
     if (cmp == 0) {//motA == motB
-        return ajouter_tete(fusionner(listeA->suivant,listeB->suivant), listeA);
+        return ajouterTete(fusionner(listeA->suivant,listeB->suivant), listeA);
     }
     if (cmp < 0) {//motA < motB (selon l'ordre alphabétique)
-        return ajouter_tete(fusionner(listeA->suivant,listeB), listeA);
+        return ajouterTete(fusionner(listeA->suivant,listeB), listeA);
     }
     if (cmp > 0) {//motA > motB (selon l'ordre alphabétique)
-        return ajouter_tete(fusionner(listeA,listeB->suivant), listeB);
+        return ajouterTete(fusionner(listeA,listeB->suivant), listeB);
     }
     return NULL;
 }
@@ -191,7 +191,7 @@ void viderBuffer() {
 }
 
 ////////////////// EN PLUS ////////////////////////
-t_mot* ajouter_tete (t_mot *liste, t_mot *val) {
+t_mot* ajouterTete (t_mot *liste, t_mot *val) {
     //fonction qui ajoute en tête de liste pour pouvoir simpliier la complexité de la fonction fusionner
     val->suivant = liste;
     liste = val;
