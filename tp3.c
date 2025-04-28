@@ -101,6 +101,9 @@ t_mot *retirerMot(t_mot *liste, char *mot) {
 void afficherMots(t_mot *liste){
     char first_car = "0";
     char car_precedent = "1";
+    if (liste == NULL) {
+            printf("LE LEXIQUE EST VIDE !");
+    }
     while (liste){
         char* mot = liste->mot;
         if (convMaj(mot) != first_car){
@@ -225,7 +228,6 @@ char *toutMinuscule(char *mot) {
     }
     return mot;
 }
-
 
 
 
