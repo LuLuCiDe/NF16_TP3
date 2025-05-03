@@ -4,18 +4,71 @@
 
 #define TAILLE_MAX_LIGNE 50
 
+
+
+////////////////// FONCTIONS SUPPLEMENTAIRES | EN PLUS ////////////////////////
+t_mot* ajouterTete (t_mot *liste, t_mot *val) {
+    //fonction qui ajoute en tête de liste pour pouvoir simpliier la complexité de la fonction fusionner
+    val->suivant = liste;
+    liste = val;
+    return liste;
+}
+
+char convMaj(char *mot) {
+    char caractere = mot[0];
+    if (caractere >= 'a' && caractere <='z') {
+        caractere -= 32 ;
+    }
+    return caractere;
+}
+
+void libererListe(t_mot* liste) {
+    t_mot* temp;
+    while (liste != NULL) {
+        temp = liste;
+        liste = liste->suivant;
+        free(temp->mot);
+        free(temp->nombre_occurences);
+        free(temp);
+    }
+}
+
+char *toutMinuscule(char *mot) {
+    char *motParcouru = mot;
+    int tailleMot = strlen(mot);
+    for (int i=0; i<tailleMot; i++) {
+        if (*motParcouru >= 'A' && *motParcouru<='Z') {
+            *motParcouru += 32;
+        }
+        motParcouru++;
+    }
+    return mot;
+}
+////////////////// FIN DES FONCTIONS SUPPLEMENTAIRES   ////////////////////////
+
+
+
 // Création nouvel élément
 t_mot *creerMot(char *mot) {
     t_mot * new_mot = malloc(sizeof(t_mot));
-    mot = toutMinuscule(mot);
     if (!new_mot) {
         return NULL;
     }
-    new_mot-> mot = mot;
+    //Il y a beaucoup de problèmes de confusion entre les entrées ("scanf") et les créations du mot
+    //-> Solution : Allocation mémoire plus claire avec malloc
+    new_mot->mot = malloc(strlen(mot) + 1);
+    if (!new_mot->mot){
+        free(new_mot);
+        return NULL;
+    }
+    strcpy(new_mot->mot, mot); //copie la chaine de caractère de mot dans la zone mémoire allouée
+
+
     new_mot->nombre_occurences = 1;
     new_mot->suivant = NULL;
     return new_mot;
 }
+
 
 /* ====== FIN creerMot ====== */
 
@@ -64,27 +117,43 @@ t_mot *ajouterMot(t_mot *liste, char *mot) {
 
 // Retrait occurence mot d'une liste
 t_mot *retirerMot(t_mot *liste, char *mot) {
+    // Si la liste est nulle :
     if(!liste){return NULL;}
-    if (liste->mot==mot && liste->nombre_occurences==1){ //mot est au début du lexique et si = à 1
-        return liste->suivant;
+
+    // On convertit en minuscule le mot
+    mot = toutMinuscule(mot);
+
+    // Si le mot est au début
+    if (strcmp(liste->mot, mot) == 0){
+        // Si l'occurence vaut 1
+        if (liste->nombre_occurences==1) {
+            t_mot *new_liste = liste->suivant;
+            free(liste);
+
+            return new_liste;
+        } else {
+            liste->nombre_occurences--;
+            return liste;
+        }
     }
 
+    // Si le mot n'est PAS au début
+    t_mot *precedent=liste;
+    while(precedent->suivant != NULL && strcmp(precedent->suivant->mot, mot) != 0){
+        precedent = precedent->suivant;
+    }   // s'arrête quand on arrive à la fin de la liste
+        // OU quand on a trouvé le mot
 
-    t_mot *pred=liste;
-    while(pred->suivant != NULL && strcmp(pred->suivant->mot, mot) != 0){
-        pred = pred->suivant;
-    }
 
-
-    if(pred->suivant == NULL){//le mot n'est pas dans la liste
+    if(precedent->suivant == NULL){ //le mot n'est pas dans la liste
         return liste;
     }
 
 
     //else : pred->suivant->mot == mot
-    t_mot *found=pred->suivant;
+    t_mot *found=precedent->suivant;
     if(found->nombre_occurences<=1){
-        pred->suivant = found->suivant;
+        precedent->suivant = found->suivant;
         free(found);
         return liste;
     }
@@ -102,7 +171,7 @@ void afficherMots(t_mot *liste){
     char first_car = "0";
     char car_precedent = "1";
     if (liste == NULL) {
-            printf("LE LEXIQUE EST VIDE !");
+            printf("\nLE LEXIQUE EST VIDE !");
     }
     while (liste){
         char* mot = liste->mot;
@@ -192,44 +261,4 @@ void viderBuffer() {
     int c = '0';
     while (c!='\n' && c != EOF) { c = getchar(); }
 }
-
-////////////////// EN PLUS ////////////////////////
-t_mot* ajouterTete (t_mot *liste, t_mot *val) {
-    //fonction qui ajoute en tête de liste pour pouvoir simpliier la complexité de la fonction fusionner
-    val->suivant = liste;
-    liste = val;
-    return liste;
-}
-
-char convMaj(char *mot) {
-    char caractere = mot[0]-32 ;
-    return caractere;
-}
-
-void libererListe(t_mot* liste) {
-    t_mot* temp;
-    while (liste != NULL) {
-        temp = liste;
-        liste = liste->suivant;
-        free(temp->mot);
-        free(temp->nombre_occurences);
-        free(temp);
-    }
-}
-
-char *toutMinuscule(char *mot) {
-    char *motParcouru = mot;
-    int tailleMot = strlen(mot);
-    for (int i=0; i<tailleMot; i++) {
-        if (*motParcouru >= 'A' && *motParcouru<='Z') {
-            *motParcouru += 32;
-        }
-        motParcouru++;
-    }
-    return mot;
-}
-
-
-
-
 
