@@ -1,214 +1,200 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "tp3.h"
 
-#define TAILLE_MAX_MOT 100
+#define MAX_MOT 30
+#define MAX_TITRE 50
 
-int main() {
-    char choixMenu = '0' ;
-    char choixLexique = '0';
-    char confirmation = '0';
-    char mot[TAILLE_MAX_MOT] = "alphabet";
-    t_mot *lexiqueA, *lexiqueB = malloc(sizeof(t_mot));
-    lexiqueA = NULL;
-    lexiqueB = NULL;
+int main() {  
+    //--- Définition variables : ---
+    //Liste de tous les lexiques
+    lex* liste_lexique = init();
+
+    //Nombre de lexique
+    int nb_lexique = 2;
+
+    // ( Les inputs )
+    char *input_mot=malloc(MAX_MOT * sizeof(char));
+    char *input_titre=malloc(MAX_TITRE * sizeof(char));
+    int num_lex = 0;
+
+    lex* lexique_choisi = liste_lexique;
+
+    //Parcoureur de liste de lexiques
+    lex* parcours = liste_lexique;
+    lex* precedent = liste_lexique;
+
+    //Pour la fusion de lexique
+    lex* lexiqueB_choisi = NULL;
+    int num_lexB = 0; //pour la selection du lexique à fusionner
+
+    char choixMenu = '0'; //pour la selection d'une action dans le menu
 
     do {
         printf("\n========================================");
         printf("\n  [1] Afficher un lexique");
-        printf("\n  [2] Ajouter un mot dans un lexique");
-        printf("\n  [3] Retirer un mot d'un lexique");
-        printf("\n  [4] Fusionner deux lexiques");
-        printf("\n  [5] Charger un fichier dans un lexique");
-        printf("\n  [6] Quitter");
+        printf("\n  [2] Creer un lexique"); //Pourait être utile à l'utilisateur
+        printf("\n  [3] Ajouter un mot dans un lexique");
+        printf("\n  [4] Retirer un mot d'un lexique");
+        printf("\n  [5] Fusionner deux lexiques");
+        printf("\n  [6] Charger un fichier dans un lexique");
+        printf("\n  [7] Quitter");
         printf("\n========================================");
         printf("\nVotre choix : ");
-        //choixMenu = scanf(" %c", &choixMenu);
         choixMenu = getchar();
         viderBuffer();
 
         switch (choixMenu) {
             case '1' :
-                printf("\nLexique A ou B : ");
-                choixLexique = getchar();
-                viderBuffer();
-                switch (choixLexique) {
-                    case 'A':
-                        afficherMots(lexiqueA);
-                        break;
-                    case 'B':
-                        afficherMots(lexiqueB);
-                        break;
-                }
-                printf("\n\n\n\n\n\n\n\n\n\n");
-                break;
+                printf("\n\n==== Affichage des lexiques ====\n\n");
 
+                //On récupère le numéro du lexique à afficher                
+                afficherTitreLex(liste_lexique);  
+                lexique_choisi=selectLex(liste_lexique, nb_lexique);
+
+                //On affiche le lexique
+                printf("\n_____ *( %s )* _____ \n", lexique_choisi->titre);
+                afficherMots(lexique_choisi->liste_mot);
+                break;
+            
             case '2' :
-                printf("\nEntrez le mot a INSERER : ");
-                char input_mot[TAILLE_MAX_MOT]=""; //allocation en m�moire plus claire que *mot
+                printf("\n\n==== Creation d'un lexique ====\n\n");
+
+                //On prend le titre du nouveau lexique
+                printf("\n\n\t<Entrez le titre du nouveau lexique>\n\n");
+                scanf(" %s", input_titre);
+                viderBuffer();
+
+                //On prend l'input du mot à insérer
+                printf("\n\n\t<Entrez le titre du nouveau lexique>\n\n");
                 scanf(" %s", input_mot);
                 viderBuffer();
-                printf("\nDans A ou B : ");
-                choixLexique = getchar();
-                viderBuffer();
-                switch (choixLexique) {
-                    case 'A':
-                        lexiqueA = ajouterMot(lexiqueA, input_mot);
-                        if (!lexiqueA){printf("Ca marche pas.");}
-                        break;
-                    case 'B':
-                        lexiqueB = ajouterMot(lexiqueB, input_mot);
-                        if (!lexiqueB){printf("Ca marche pas.");}
-                        break;
-                }
-                printf("\n\n\n\n\n\n\n\n\n\n");
+
+                ajouterQueueLex(liste_lexique,creerLex(input_titre,creerMot(input_mot)));
+
+                //On affiche le résultat
+                afficherTitreLex(liste_lexique);
                 break;
 
+
             case '3' :
-                printf("\nEntrez le mot a RETIRER : ");
-                char to_supp[100]=""; //allocation en m�moire plus claire que *mot
-                scanf(" %s", to_supp);
+                printf("\n\n==== Ajout d'un mot ====\n\n");
+
+                //On récupère le numéro du lexique à modifier
+                afficherTitreLex(liste_lexique);
+                lexique_choisi=selectLex(liste_lexique, nb_lexique);
+
+                //On prend l'input du mot à insérer
+                printf("\n\n\t<Entrez le mot a INSERER dans le lexique '%s'>\n\n", lexique_choisi->titre);
+                scanf(" %s", input_mot);
                 viderBuffer();
-                printf("\nDans A ou B : ");
-                choixLexique = getchar();
-                viderBuffer();
-                switch (choixLexique) {
-                    case 'A':
-                        lexiqueA = retirerMot(lexiqueA, to_supp);
-                        break;
-                    case 'B':
-                        lexiqueB = retirerMot(lexiqueB, to_supp);
-                        break;
-                }
-                printf("\n\n\n\n\n\n\n\n\n\n");
+
+                //On ajoute le mot au lexique sélectionné
+                lexique_choisi->liste_mot = ajouterMot(lexique_choisi->liste_mot, input_mot);
+
+                //On affiche le résultat
+                printf("\nLe lexique '%s' devient : \n", lexique_choisi->titre);
+                afficherMots(lexique_choisi->liste_mot);
                 break;
 
 
             case '4' :
-                printf("\nLa fusion a lieu dans A, B ou on annule (A/B/N) : ");
-                confirmation = getchar();
+                printf("\n\n==== Suppression d'un mot ====\n\n");
+
+                //On récupère le numéro du lexique à modifier
+                afficherTitreLex(liste_lexique);
+                lexique_choisi=selectLex(liste_lexique, nb_lexique);                
+                
+                //On prend l'input du mot à retirer
+                printf("\n\n\t<Entrez le mot a RETIRER dans le lexique '%s'>\n\n", lexique_choisi->titre);
+                scanf(" %s", input_mot);
                 viderBuffer();
-                switch (confirmation) {
-                    case 'A':
-                        lexiqueA = fusionner(lexiqueA,lexiqueB);
-                        break;
-                    case 'B':
-                        lexiqueB = fusionner(lexiqueA,lexiqueB);
-                        break;
-                    case 'N':
-                        printf("\n\n\t<FUSION ANNULEE>\n\n");
-                        break;
-                }
-                printf("\n\n\n\n\n\n\n\n\n\n");
+
+                //On retire le mot du lexique sélectionné
+                lexique_choisi->liste_mot = retirerMot(lexique_choisi->liste_mot, input_mot);
+
+                //On affiche le résultat
+                printf("\nLe lexique '%s' devient : \n", lexique_choisi->titre);
+                afficherMots(lexique_choisi->liste_mot);
                 break;
 
 
             case '5' :
-                printf("\nChargez le fichier dans A ou B : ");
-                choixLexique = getchar();
-                viderBuffer();
-                switch (choixLexique) {
-                    case 'A':
-                        lexiqueA = importerFichier(lexiqueA);
-                        break;
-                    case 'B':
-                        lexiqueB = importerFichier(lexiqueB);
-                        break;
-                }
-                printf("\n\n\n\n\n\n\n\n\n\n");
+                printf("\n\n==== Fusion lexique A et lexique B (A+B->A) ====\n\n");
 
+                afficherTitreLex(liste_lexique);
+                
+                printf("\n\t<Selection du lexique A>\n");
+                lexique_choisi=selectLex(liste_lexique, nb_lexique); 
+
+                printf("\n\t<Selection du lexique B>\n");
+                lexiqueB_choisi=selectLex(liste_lexique, nb_lexique); 
+
+                if (lexiqueB_choisi == liste_lexique) {//Le lexique B est en tête de liste
+                    //On supprime le lexique B de la liste (mais on le garde pour la fusion)
+                    liste_lexique=liste_lexique->suivant;
+                }
+                else {//On parcourt les lexiques jusqu'au precedent du lexique B choisi
+                    precedent = liste_lexique;
+                    while(precedent->suivant != lexiqueB_choisi){
+                        precedent=precedent->suivant;
+                    }
+
+                    //On supprime le lexique B de la liste (mais on le garde pour la fusion)
+                    precedent->suivant=precedent->suivant->suivant;
+                }
+
+                //On demande de choisir un nouveau titre
+                printf("\n\n\t<Entrez le nouveau titre du lexique>\n\n");
+                scanf(" %s", input_titre);
+                viderBuffer();
+
+                //On attribue à la liste A la fusion des deux listes et le nouveau titre du lexique
+                lexique_choisi->liste_mot=fusionner(lexique_choisi->liste_mot, lexiqueB_choisi->liste_mot);
+                lexique_choisi->titre=input_titre;
+
+                //On libère la mémoire du lexique B (mais pas des mots qui étaient présents dans le lexique)
+                free(lexiqueB_choisi->titre);
+                free(lexiqueB_choisi);
+
+                //On affiche le résultat
+                printf("\nLe lexique '%s' devient : \n", lexique_choisi->titre);
+                afficherMots(lexique_choisi->liste_mot);
+                break;
+
+            case '6' :
+                printf("\n\n==== Chargement d'un nouveau lexique ====\n\n");
+
+                //On récupère le numéro du lexique à modifier
+                afficherTitreLex(liste_lexique);
+                lexique_choisi=selectLex(liste_lexique, nb_lexique);  
+
+                lexique_choisi->liste_mot=importerFichier(lexique_choisi->liste_mot);
+
+                //On affiche le résultat
+                printf("\nLe lexique '%s' devient : \n", lexique_choisi->titre);
+                afficherMots(lexique_choisi->liste_mot);
                 break;
         }
-    } while (choixMenu != '6');
+    } while (choixMenu != '7');
 
+    //--- Libération mémoire : ---
+    //Le programme réalise 4 "types" d'allocation dynamique de mémoire sur les :
+    // - t_mot
+    // - mots (string)
+    // - titres (string)
+    // - lexiques
 
-
+    precedent=liste_lexique;    
+    parcours=liste_lexique;
+    while(parcours!=NULL){
+        parcours=precedent->suivant;
+        libererListe(precedent->liste_mot); //libère les mots et les t_mots du lexiques
+        free(precedent->titre); //libère les titres
+        free(precedent); //libère les lexiques
+    }
 
     printf("\n\n*** FIN DU PROGRAMME ***\n");
 
-
-    return 0;
-
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-int main() {
-    char mot1[] = "abeille";
-    char mot2[] = "arbre";
-    char mot3[] = "avion";
-    char mot4[] = "bateau";
-    char mot5[] = "bulle";
-    char mot6[] = "dans";
-    char mot7[] = "du";
-    t_mot* liste;
-
-    // Creation de la liste
-    liste = creerMot(&mot1);
-
-    // Ajout des mots au lexique
-    // mot en A
-    liste = ajouterMot(liste, &mot2);
-    liste = ajouterMot(liste, &mot2);
-    liste = ajouterMot(liste, &mot2);
-    liste = ajouterMot(liste, &mot3);
-
-    // mot en B
-    liste = ajouterMot(liste, &mot4);
-    liste = ajouterMot(liste, &mot5);
-    liste = ajouterMot(liste, &mot5);
-
-    // mot en D
-    for (int i=0; i<7; i++){liste = ajouterMot(liste, &mot6);}
-    for (int i=0; i<10; i++){liste = ajouterMot(liste, &mot7);}
-
-
-    // Retrait de mot
-    liste = retirerMot(liste, &mot7);
-
-
-    char motB1[]= "Kaamelott";
-    t_mot* listeB = creerMot(&motB1);
-
-
-    //liste = fusionner(liste, listeB);
-
-
-
-    listeB = importerFichier(listeB);
-
-    // Affichage
-    afficherMots(listeB);
-
-    libererListe(liste);
-    libererListe(listeB);
-
     return 0;
 }
-
-*/
